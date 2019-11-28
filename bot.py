@@ -417,5 +417,5 @@ async def on_message(message):
         await tumblr(message, value)
 
 
-
-client.run("NjQ3Nzc1MDAzMDM0Nzc5NjQ5.XdpAHA.hkfDZKJ3rYYLjc7B0-aAeo4reGE")
+import os 
+client.run(os.environ['BOT_TOKEN'])
