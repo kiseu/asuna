@@ -1,11 +1,8 @@
 import discord
 import requests
-from discord.ext import commands
-from discord.ext.commands import Bot
 import string
 import asyncio
 import re 
-from requests_html import HTMLSession
 
 
 client = discord.Client()
