@@ -414,4 +414,4 @@ async def on_message(message):
 
 
 import os 
-client.run('NjQ3Nzc1MDAzMDM0Nzc5NjQ5.Xd-_5w.bouU5Ssubhyv6MejSyW7WsSZLXU')
+client.run(os.environ['BOT_TOKEN'])
