@@ -2,7 +2,6 @@ import discord
 import requests
 from discord.ext import commands
 from discord.ext.commands import Bot
-import seleniumrequests
 import string
 import asyncio
 import re 
