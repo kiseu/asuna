@@ -3,6 +3,7 @@ import requests
 import string
 import asyncio
 import re 
+from lxml import html
 
 
 client = discord.Client()
@@ -28,6 +29,28 @@ async def steamid(message, value):
     r = requests.get(f"https://steamcommunity.com/id/{value}",headers=headers)
     s = "The specified profile could not be found."
     requests.get(f"https://steamcommunity.com/id/{value}",headers=headers)
+    tree = html.fromstring(r.content)
+    hr = tree.xpath('//div//span[@class="actual_persona_name"]/text()')
+    lastonline = tree.xpath('//div[@class="profile_in_game_name"]/text()')
+    status = tree.xpath('//div[@class="profile_in_game_header"]/text()') 
+    
+
+    if isinstance(hr, list) and len(hr) > 0:
+        tag = hr[0]
+    else:
+        tag = 'Private Profile'
+
+    if isinstance(lastonline, list) and len(lastonline) > 0:
+        date = lastonline[0]
+    else:
+        date = 'Online'
+
+    if isinstance(status, list) and len(status) > 0:
+        pst = status[0]
+    else:
+        pst = 'Private Profile'
+        date = 'Private Profile'
+
     if s in r.text:
         embed=discord.Embed(color=0x80ff80)
         embed.set_author(name="Steam ID", url="https://steamcommunity.com/id/" + value, icon_url="https://cdn.discordapp.com/attachments/647827325643128900/648402262519185408/steam.png")
@@ -38,6 +61,8 @@ async def steamid(message, value):
         embed.set_author(name="Steam ID", url="https://steamcommunity.com/id/" + value, icon_url="https://cdn.discordapp.com/attachments/647827325643128900/648402262519185408/steam.png")
         embed.add_field(name= "Taken ❌", value= "ID " + value + " is taken on Steam.", inline=True)
         embed.add_field(name= "Profile", value= "https://steamcommunity.com/id/" + value, inline=True)
+        embed.add_field(name= "Steam Name", value= tag, inline=False)
+        embed.add_field(name= pst, value= date, inline=False)
         
         await message.channel.send(embed=embed)
 
@@ -46,6 +71,31 @@ async def steamgroup(message, value):
     r = requests.get(f"https://steamcommunity.com/groups/{value}",headers=headers)
     g = "No group could be retrieved for the given URL."
     requests.get(f"https://steamcommunity.com/groups/{value}",headers=headers)
+    tree = html.fromstring(r.content)
+    hr = tree.xpath('//div//span[@class="grouppage_header_abbrev"]/text()')
+    hrn = tree.xpath('//div[@class="grouppage_resp_title ellipsis"]/text()')
+    
+
+    if isinstance(hr, list) and len(hr) > 0:
+        tag = hr[0]
+    else:
+        tag = ''
+
+    if isinstance(hrn, list) and len(hrn) > 0:
+        gname = hrn[0]
+    else:
+        gname = ''
+
+    if not tag.isascii():
+        hasunicode = 'True 🤣 : `' + tag.encode(encoding='ascii', errors='backslashreplace').decode() + '`'
+
+
+    else:
+        hasunicode = 'False ☺'
+
+
+
+
     if g in r.text:
         embed=discord.Embed(color=0x80ff80)
         embed.set_author(name="Steam Group", url="https://steamcommunity.com/groups/" + value, icon_url="https://cdn.discordapp.com/attachments/647827325643128900/648402262519185408/steam.png")
@@ -56,6 +106,9 @@ async def steamgroup(message, value):
         embed.set_author(name="Steam Group", url="https://steamcommunity.com/groups/" + value, icon_url="https://cdn.discordapp.com/attachments/647827325643128900/648402262519185408/steam.png")
         embed.add_field(name= "Taken ❌", value= "Group " + value + " is taken on Steam.", inline=True)
         embed.add_field(name= "Profile", value= "https://steamcommunity.com/groups/" + value, inline=True)
+        embed.add_field(name= "Group Name", value= gname, inline=False)
+        embed.add_field(name= "Group Tag", value= tag, inline=False)
+        embed.add_field(name= "Unicode", value= hasunicode, inline=False)
         await message.channel.send(embed=embed)
 
 async def twitter(message, value):
@@ -64,6 +117,7 @@ async def twitter(message, value):
     t = "errorpage-footer"
     t2 = "Account Suspended"
     requests.get(f"https://twitter.com/{value}",headers=headers)
+
     if t in r.text and t2 not in r.text:
         embed=discord.Embed(color=0x80ff80)
         embed.set_author(name="Twitter", url="https://twitter.com/" + value, icon_url="https://cdn.discordapp.com/attachments/647827325643128900/648401267374424064/twitter.png")
@@ -213,6 +267,22 @@ async def tumblr(message, value):
         embed.add_field(name= "Profile", value= "https://" + value + ".tumblr.com", inline=True)
         await message.channel.send(embed=embed)
 
+""" async def matter(message, value):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0, Accept-Encoding, identity'}
+    r = requests.get(f"https://app.matter.online/artists/@{value}",headers=headers)
+    s = "Page not found"
+    requests.get(f"https://app.matter.online/artists/@{value}",headers=headers)
+    if r.status_code == 404:
+        embed=discord.Embed(color=0x80ff80)
+        embed.set_author(name="Matter", url="https://app.matter.online/artists/@" + value, icon_url="https://cdn.discordapp.com/attachments/651241685065662464/651241706435510302/Screenshot_2019-12-03_Matter__MatterStreaming_Twitter.png")
+        embed.add_field(name= "Available ✅", value= value + " is available on Matter.", inline=True)
+        await message.channel.send(embed=embed)
+    else:
+        embed=discord.Embed(color=0xe15b5b)
+        embed.set_author(name="Matter", url="https://app.matter.online/artists/@" + value, icon_url="https://cdn.discordapp.com/attachments/651241685065662464/651241706435510302/Screenshot_2019-12-03_Matter__MatterStreaming_Twitter.png")
+        embed.add_field(name= "Taken ❌", value= value + " is taken on Matter.", inline=True)
+        embed.add_field(name= "Profile", value= "https://app.matter.online/artists/@" + value, inline=True)
+        await message.channel.send(embed=embed) """
 
 
 
@@ -235,7 +305,7 @@ async def on_message(message):
         words: list = wordstr.split()
         for value in words:
             value = "".join(re.split("[^a-zA-Z0-9_]*", value)) 
-            if len(value) > 14:
+            if len(value) > 32:
                 await message.channel.send("`Steam Group URL limit is 32.`")
                 return
             else:            
@@ -248,7 +318,7 @@ async def on_message(message):
         words: list = wordstr.split()
         for value in words:
             value = "".join(re.split("[^a-zA-Z0-9_]*", value)) 
-            if len(value) > 14:
+            if len(value) > 32:
                 await message.channel.send("`Steam ID limit is 32.`")
                 return
             else:        
@@ -371,7 +441,7 @@ async def on_message(message):
         embed.add_field(name="!youtube", value="checks youtube url", inline=False)
         embed.add_field(name="!mastodon", value="checks mastodon url", inline=False)
         embed.add_field(name="!minecraft", value="checks minecraft url", inline=False)
-        embed.add_field(name="!tumblr", value="checks tumblr url", inline=False)               
+        embed.add_field(name="!tumblr", value="checks tumblr url", inline=False)        
         embed.set_footer(text="made with 💕 by @kiseu#4727")
         await message.author.send(embed=embed)
 
@@ -390,7 +460,7 @@ async def on_message(message):
         embed.add_field(name="!youtube", value="checks youtube url", inline=False)
         embed.add_field(name="!mastodon", value="checks mastodon url", inline=False)
         embed.add_field(name="!minecraft", value="checks minecraft url", inline=False)
-        embed.add_field(name="!tumblr", value="checks tumblr url", inline=False)               
+        embed.add_field(name="!tumblr", value="checks tumblr url", inline=False)      
         embed.set_footer(text="made with 💕 by @kiseu#4727")
         await message.channel.send(embed=embed)
 
@@ -414,4 +484,6 @@ async def on_message(message):
 
 
 import os 
-client.run(os.environ['BOT_TOKEN'])
+client.run('NjQ3Nzc1MDAzMDM0Nzc5NjQ5.Xd-_5w.bouU5Ssubhyv6MejSyW7WsSZLXU')
+BOT_TOKEN="NjQ3Nzc1MDAzMDM0Nzc5NjQ5.Xd-_5w.bouU5Ssubhyv6MejSyW7WsSZLXU"
+os_environ="os.environ['BOT_TOKEN']"
